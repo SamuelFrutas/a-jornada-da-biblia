@@ -1,57 +1,19 @@
-const chapters=[
- {id:1,title:'A Criação',ref:'Gênesis 1',summary:'O início da história: Deus cria os céus, a terra e tudo o que nela existe.',xp:50,unlock:null,discoveries:[['A criação','Gênesis 1','O relato apresenta Deus como Criador e organiza a criação em uma sequência de dias.']],question:{q:'Segundo Gênesis 1, o que Deus criou no princípio do relato?',options:['A luz','O templo','Jerusalém','O povo de Israel'],correct:0,explain:'O capítulo começa apresentando a criação da luz. Confira o relato completo em Gênesis 1:3.',ref:'Gênesis 1:3'}},
- {id:2,title:'O Jardim do Éden',ref:'Gênesis 2',summary:'O ser humano é colocado no jardim, recebe uma missão e conhece o mandamento de Deus.',xp:60,unlock:1,discoveries:[['Éden','Gênesis 2','O jardim é apresentado como o lugar onde Deus colocou o ser humano no início da narrativa.'],['Adão','Gênesis 2','O primeiro homem recebe uma tarefa e vive no jardim antes da queda.']],question:{q:'Qual era o jardim onde o homem foi colocado?',options:['Jardim do Éden','Jardim de Jerusalém','Jardim do Sinai','Jardim de Belém'],correct:0,explain:'O relato de Gênesis 2 chama esse lugar de jardim do Éden.',ref:'Gênesis 2:8'}},
- {id:3,title:'A Queda',ref:'Gênesis 3',summary:'A desobediência entra na história e o relacionamento do ser humano com Deus é marcado por suas consequências.',xp:70,unlock:2,discoveries:[['A serpente','Gênesis 3','A serpente aparece no relato como personagem da tentação que conduz à desobediência.'],['A queda','Gênesis 3','A desobediência de Adão e da mulher traz consequências e encerra sua permanência no jardim.']],question:{q:'Qual foi a consequência imediata narrada após a desobediência?',options:['Eles foram expulsos do jardim','Eles construíram uma cidade','Eles voltaram para o Egito','Eles receberam uma coroa'],correct:0,explain:'O capítulo termina com a expulsão do jardim do Éden e a guarda do caminho para a árvore da vida.',ref:'Gênesis 3:23–24'}}
-];
-
-const defaultState={xp:0,completed:[],discoveries:[]};
-let state=JSON.parse(localStorage.getItem('jornadaBiblia')||'null')||defaultState;
-let current=null;
-
+const chapters=[{id:1,title:'A Criação',ref:'Gênesis 1',summary:'Deus cria os céus, a terra e tudo o que nela existe. A luz surge e a criação é organizada.',xp:50,unlock:null,scene:'criação',discoveries:[['A criação','Gênesis 1','O capítulo apresenta Deus como Criador e organiza a criação em seis dias, culminando na criação do ser humano.']],question:{q:'Segundo Gênesis 1:3, o que Deus disse para surgir?',options:['A luz','A chuva','Jerusalém','O templo'],correct:0,explain:'Deus disse: “Haja luz”, e houve luz.',ref:'Gênesis 1:3'}},{id:2,title:'O Jardim do Éden',ref:'Gênesis 2',summary:'O ser humano é colocado no jardim, recebe uma missão e conhece o mandamento de Deus.',xp:60,unlock:1,scene:'eden',discoveries:[['Éden','Gênesis 2','O Éden é o jardim onde Deus colocou o ser humano. O relato também apresenta o rio que saía do jardim e se dividia em quatro braços.'],['Adão','Gênesis 2','O homem é formado do pó da terra, recebe vida e é colocado no jardim para cultivá-lo e guardá-lo.']],question:{q:'Qual era o nome do jardim onde Deus colocou o homem?',options:['Jardim do Éden','Jardim do Sinai','Jardim de Belém','Jardim de Jerusalém'],correct:0,explain:'Gênesis 2:8 diz que Deus plantou um jardim no Éden e ali colocou o homem.',ref:'Gênesis 2:8'}},{id:3,title:'A Queda',ref:'Gênesis 3',summary:'A serpente engana a mulher, o casal desobedece e a narrativa apresenta as consequências do pecado.',xp:70,unlock:2,scene:'queda',discoveries:[['A serpente','Gênesis 3','A serpente aparece no relato conversando com a mulher e distorcendo o mandamento de Deus.'],['A queda','Gênesis 3','A desobediência traz consequências e termina com a saída do homem e da mulher do jardim.']],question:{q:'O que aconteceu depois que o homem e a mulher pecaram?',options:['Foram expulsos do jardim','Foram levados ao Egito','Construíram uma cidade','Receberam uma coroa'],correct:0,explain:'Deus os expulsou do jardim do Éden, e querubins passaram a guardar o caminho da árvore da vida.',ref:'Gênesis 3:23–24'}}];
+const achievements=[['no-principio','No princípio','Conclua Gênesis 1.'],['o-jardim','O Jardim','Conclua Gênesis 2.'],['a-queda','A Queda','Conclua Gênesis 3.'],['primeiro-passo','Primeiro passo','Complete sua primeira fase.'],['pequena-jornada','Pequena jornada','Conclua os três capítulos do protótipo.']];
+const defaultState={xp:0,completed:[],discoveries:[],achievements:[]};
+let state=load(),current=null;
 const $=s=>document.querySelector(s);
-function save(){localStorage.setItem('jornadaBiblia',JSON.stringify(state));}
-function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$('#'+id).classList.add('active');window.scrollTo(0,0);}
-function renderHeader(){
- const level=Math.floor(state.xp/100)+1, inLevel=state.xp%100;
- $('#levelText').textContent='Nível '+level;
- $('#xpText').textContent=state.xp+' XP';
- $('#xpFill').style.width=Math.min(inLevel,100)+'%';
-}
-function renderMap(){
- renderHeader();
- $('#chapterNodes').innerHTML=chapters.map(c=>{
-  const done=state.completed.includes(c.id), unlocked=c.unlock===null||state.completed.includes(c.unlock);
-  return `<article class="chapter-card ${unlocked?'':'locked'}"><div class="node">${done?'✓':c.id}</div><div><h3>Capítulo ${c.id} — ${c.title}</h3><p>${c.summary}</p></div>${unlocked?`<button data-chapter="${c.id}">${done?'REVISITAR':'ENTRAR'}</button>`:'<span>🔒</span>'}</article>`;
- }).join('');
- document.querySelectorAll('[data-chapter]').forEach(b=>b.onclick=()=>openChapter(Number(b.dataset.chapter)));
-}
-function openChapter(id){
- current=chapters.find(c=>c.id===id);show('chapter');
- $('#chapterLabel').textContent='GÊNESIS';$('#chapterProgress').textContent=`Capítulo ${current.id} de 3`;
- $('#chapterXp').textContent=`+${current.xp} XP`;
- $('#chapterBody').innerHTML=`<article class="story-card"><div class="chapter-number">${current.ref.toUpperCase()}</div><h2>${current.title}</h2><p>${current.summary}</p><span class="reference">📖 ${current.ref}</span><div class="question"><h3>Desafio da jornada</h3><p>${current.question.q}</p><div class="answers">${current.question.options.map((o,i)=>`<button class="answer" data-answer="${i}">${String.fromCharCode(65+i)}) ${o}</button>`).join('')}</div><div id="feedback"></div></div></article>`;
- document.querySelectorAll('[data-answer]').forEach(b=>b.onclick=()=>answer(Number(b.dataset.answer)));
-}
-function answer(choice){
- const q=current.question, buttons=document.querySelectorAll('[data-answer]');
- buttons.forEach(b=>b.disabled=true);
- buttons[q.correct].classList.add('correct');
- if(choice!==q.correct)buttons[choice].classList.add('wrong');
- const ok=choice===q.correct;
- $('#feedback').innerHTML=`<div class="feedback"><strong class="${ok?'success':'danger'}">${ok?'✓ Correto!':'Quase!'}</strong><br>${q.explain}<br><span class="reference">${q.ref}</span><br><button class="next" id="finishBtn">${current.id===3?'CONCLUIR JORNADA':'CONCLUIR CAPÍTULO'}</button></div>`;
- $('#finishBtn').onclick=finishChapter;
-}
-function finishChapter(){
- if(!state.completed.includes(current.id)){state.completed.push(current.id);state.xp+=current.xp;current.discoveries.forEach(d=>{if(!state.discoveries.some(x=>x[0]===d[0]))state.discoveries.push(d)});save();}
- renderMap();show('map');
-}
-function renderLibrary(){
- const cards=state.discoveries.map(d=>`<article class="library-card"><h3>${d[0]}</h3><small>${d[1]}</small><p>${d[2]}</p></article>`).join('');
- $('#libraryBody').innerHTML=cards?`<div class="library-grid">${cards}</div>`:`<div class="empty">Complete capítulos para desbloquear descobertas.</div>`;
- show('library');
-}
-function reset(){if(confirm('Reiniciar todo o progresso desta jornada?')){state={...defaultState};save();renderMap();show('map');}}
-$('#startBtn').onclick=()=>{state={...defaultState};save();renderMap();show('map')};
-$('#continueBtn').onclick=()=>{renderMap();show('map')};
-document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='map'){renderMap();show('map')}if(a==='library')renderLibrary();if(a==='reset')reset()});
-renderHeader();
+function load(){try{return JSON.parse(localStorage.getItem('jornadaBiblia'))||structuredClone(defaultState)}catch{return structuredClone(defaultState)}}
+function save(){localStorage.setItem('jornadaBiblia',JSON.stringify(state))}
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$('#'+id).classList.add('active');scrollTo({top:0,behavior:'instant'})}
+function toast(text){const t=$('#toast');t.textContent=text;t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),2200)}
+function renderHeader(){const level=Math.floor(state.xp/100)+1,inLevel=state.xp%100;$('#levelText').textContent='Nível '+level;$('#xpText').textContent=state.xp+' XP';$('#xpFill').style.width=Math.min(inLevel,100)+'%';$('#continueBtn').style.display=state.completed.length?'inline-flex':'none'}
+function renderMap(){renderHeader();const done=state.completed.length;$('#mapProgress').textContent=Math.round(done/chapters.length*100)+'%';$('#chapterNodes').innerHTML=chapters.map((c,i)=>{const complete=state.completed.includes(c.id),unlocked=c.unlock===null||state.completed.includes(c.unlock);return `<article class="chapter-card ${unlocked?'':'locked'} ${complete?'done':''}" style="--i:${i}"><button class="node ${complete?'done-node':''}" ${unlocked?`data-chapter="${c.id}"`:''}>${complete?'✓':c.id}</button><div class="chapter-copy"><span>${c.ref}</span><h3>${c.title}</h3><p>${c.summary}</p></div>${unlocked?`<button class="enter" data-chapter="${c.id}">${complete?'REVISITAR':'ENTRAR'} <b>›</b></button>`:'<span class="lock">○</span>'}</article>`}).join('');document.querySelectorAll('[data-chapter]').forEach(b=>b.onclick=()=>openChapter(+b.dataset.chapter));}
+function openChapter(id){current=chapters.find(c=>c.id===id);show('chapter');$('#chapterLabel').textContent='GÊNESIS';$('#chapterProgress').textContent=`Capítulo ${current.id} de ${chapters.length}`;$('#chapterXp').textContent=`+${current.xp} XP`;$('#chapterBody').innerHTML=`<div class="scene scene-${current.scene}"><div class="scene-sun"></div><div class="scene-hills"></div><div class="scene-title"><span>${current.ref}</span><h1>${current.title}</h1></div><div class="scene-orb orb-a"></div><div class="scene-orb orb-b"></div></div><article class="story-card"><div class="story-intro"><span class="chapter-number">JORNADA ${String(current.id).padStart(2,'0')}</span><p>${current.summary}</p><span class="reference">📖 ${current.ref}</span></div><div class="lesson"><div class="lesson-icon">✦</div><div><strong>Observe o texto</strong><p>Leia o capítulo na sua Bíblia e depois enfrente o desafio. O jogo foi feito para acompanhar a leitura, não para substituí-la.</p></div></div><div class="question"><span class="question-label">DESAFIO DA JORNADA</span><h2>${current.question.q}</h2><div class="answers">${current.question.options.map((o,i)=>`<button class="answer" data-answer="${i}"><span>${String.fromCharCode(65+i)}</span>${o}</button>`).join('')}</div><div id="feedback"></div></div></article>`;document.querySelectorAll('[data-answer]').forEach(b=>b.onclick=()=>answer(+b.dataset.answer))}
+function answer(choice){const q=current.question,buttons=document.querySelectorAll('[data-answer]');buttons.forEach(b=>b.disabled=true);buttons[q.correct].classList.add('correct');if(choice!==q.correct)buttons[choice].classList.add('wrong');const ok=choice===q.correct;$('#feedback').innerHTML=`<div class="feedback ${ok?'good':'retry'}"><strong>${ok?'✓ Muito bem!':'Quase! Vamos aprender.'}</strong><p>${q.explain}</p><span class="reference">📖 ${q.ref}</span><button class="next" id="finishBtn">${current.id===3?'CONCLUIR JORNADA':'CONTINUAR JORNADA'} <b>→</b></button></div>`;$('#finishBtn').onclick=finishChapter;if(ok)toast('Resposta correta · +XP ao concluir')}
+function unlockAchievement(id){if(!state.achievements.includes(id)){state.achievements.push(id);const a=achievements.find(x=>x[0]===id);if(a)toast('Conquista: '+a[1])}}
+function finishChapter(){if(!state.completed.includes(current.id)){state.completed.push(current.id);state.xp+=current.xp;current.discoveries.forEach(d=>{if(!state.discoveries.some(x=>x[0]===d[0]))state.discoveries.push(d)});unlockAchievement(current.id===1?'no-principio':current.id===2?'o-jardim':'a-queda');if(state.completed.length===1)unlockAchievement('primeiro-passo');if(state.completed.length===3)unlockAchievement('pequena-jornada');save()}renderMap();show('map')}
+function renderLibrary(){renderHeader();$('#libraryCount').textContent=state.discoveries.length;$('#libraryBody').innerHTML=state.discoveries.length?`<div class="library-intro"><span>COLEÇÃO</span><h2>O que você descobriu</h2><p>Novas páginas serão desbloqueadas conforme sua jornada avança.</p></div><div class="library-grid">${state.discoveries.map((d,i)=>`<article class="library-card"><div class="card-icon">${i%3===0?'✦':i%3===1?'⌖':'◈'}</div><small>${d[1]}</small><h3>${d[0]}</h3><p>${d[2]}</p></article>`).join('')}</div>`:'<div class="empty"><div>📖</div><h2>A biblioteca está esperando você.</h2><p>Complete Gênesis 1 para desbloquear sua primeira descoberta.</p></div>`;show('library')}
+function renderAchievements(){$('#achievementBody').innerHTML=`<div class="library-intro"><span>MARCOS</span><h2>Sua jornada</h2><p>${state.achievements.length} de ${achievements.length} conquistas desbloqueadas.</p></div><div class="achievement-grid">${achievements.map(a=>{const done=state.achievements.includes(a[0]);return `<article class="achievement ${done?'unlocked':''}"><div class="badge">${done?'★':'☆'}</div><div><h3>${a[1]}</h3><p>${a[2]}</p></div></article>`}).join('')}</div>`;show('achievements')}
+function reset(){if(confirm('Reiniciar todo o progresso desta jornada?')){state=structuredClone(defaultState);save();renderMap();show('map');toast('Jornada reiniciada')}}
+$('#startBtn').onclick=()=>{state=structuredClone(defaultState);save();renderMap();show('map')};$('#continueBtn').onclick=()=>{renderMap();show('map')};document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='map'){renderMap();show('map')}if(a==='home')show('home');if(a==='library')renderLibrary();if(a==='achievements')renderAchievements();if(a==='reset')reset()});renderHeader();
