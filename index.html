@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#10233f">
+  <title>A Jornada da Bíblia</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="app">
+    <section id="home" class="screen active">
+      <div class="hero">
+        <div class="book-mark">✦</div>
+        <p class="eyebrow">UMA JORNADA DE CONHECIMENTO</p>
+        <h1>A Jornada<br>da Bíblia</h1>
+        <p class="tagline">Do Gênesis ao Apocalipse.<br>66 livros. Uma só história.</p>
+        <button id="startBtn" class="primary">COMEÇAR JORNADA</button>
+        <button id="continueBtn" class="secondary">CONTINUAR</button>
+      </div>
+    </section>
+
+    <section id="map" class="screen">
+      <header class="topbar">
+        <div><strong>A JORNADA DA BÍBLIA</strong><small id="levelText">Nível 1</small></div>
+        <div class="xp"><span id="xpText">0 XP</span><div class="xpbar"><i id="xpFill"></i></div></div>
+      </header>
+      <div class="map-content">
+        <div class="map-title"><span>GÊNESIS</span><h2>O princípio</h2><p>Comece sua jornada pelo relato da criação.</p></div>
+        <div id="chapterNodes" class="chapter-list"></div>
+        <div class="map-footer"><button class="ghost" data-action="library">📖 Biblioteca</button><button class="ghost" data-action="reset">↻ Reiniciar progresso</button></div>
+      </div>
+    </section>
+
+    <section id="chapter" class="screen">
+      <header class="topbar">
+        <button class="back" data-action="map">← Mapa</button>
+        <div><strong id="chapterLabel">GÊNESIS</strong><small id="chapterProgress">Capítulo 1</small></div>
+        <span id="chapterXp">+0 XP</span>
+      </header>
+      <div id="chapterBody" class="chapter-body"></div>
+    </section>
+
+    <section id="library" class="screen">
+      <header class="topbar">
+        <button class="back" data-action="map">← Mapa</button>
+        <div><strong>BIBLIOTECA</strong><small>Descobertas da jornada</small></div>
+      </header>
+      <div id="libraryBody" class="library-body"></div>
+    </section>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
