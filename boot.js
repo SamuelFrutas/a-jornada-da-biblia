@@ -1,27 +1,25 @@
-/* Fallback de inicialização para dispositivos móveis e cache antigo. */
+/* Inicialização robusta para celular e para versões antigas em cache. */
 (function () {
+  function showMapFallback() {
+    var home = document.getElementById('home');
+    var map = document.getElementById('map');
+    var list = document.getElementById('chapterNodes');
+    if (home) home.classList.remove('active');
+    if (map) map.classList.add('active');
+    if (list && !list.innerHTML.trim()) {
+      list.innerHTML = '<article class="chapter-card" style="left:6%;top:18%"><button class="node" type="button" onclick="if(window.openChapter){window.openChapter(1)}">1</button><div class="chapter-copy"><span>GÊNESIS 1</span><h3>A Criação</h3><p>Entre no princípio e explore a criação.</p></div><button class="enter" type="button" onclick="if(window.openChapter){window.openChapter(1)}">JOGAR ›</button></article>' +
+        '<article class="chapter-card locked" style="left:31%;top:42%"><button class="node" type="button" disabled>2</button><div class="chapter-copy"><span>GÊNESIS 2</span><h3>O Jardim do Éden</h3><p>Complete o capítulo anterior para avançar.</p></div><span class="lock">○</span></article>' +
+        '<article class="chapter-card locked" style="right:5%;top:62%"><button class="node" type="button" disabled>3</button><div class="chapter-copy"><span>GÊNESIS 3</span><h3>A Queda</h3><p>Complete a jornada para avançar.</p></div><span class="lock">○</span></article>';
+    }
+  }
+
   function startJourney() {
     try {
-      if (typeof window.renderMap === 'function') {
-        if (typeof window.defaultState === 'function') window.state = window.defaultState();
-        if (typeof window.save === 'function') window.save();
-        window.renderMap();
-        return;
-      }
-      var home = document.getElementById('home');
-      var map = document.getElementById('map');
-      if (home && map) {
-        home.classList.remove('active');
-        map.classList.add('active');
-      }
+      if (typeof window.renderMap === 'function') window.renderMap();
+      else showMapFallback();
     } catch (error) {
       console.error('Falha ao iniciar a jornada:', error);
-      var homeEl = document.getElementById('home');
-      var mapEl = document.getElementById('map');
-      if (homeEl && mapEl) {
-        homeEl.classList.remove('active');
-        mapEl.classList.add('active');
-      }
+      showMapFallback();
     }
   }
 
@@ -31,7 +29,6 @@
     var button = document.getElementById('startBtn');
     if (!button || button.dataset.fallbackBound === '1') return;
     button.dataset.fallbackBound = '1';
-    button.addEventListener('pointerup', startJourney, { passive: true });
     button.addEventListener('click', startJourney);
   }
 
