@@ -5,6 +5,9 @@ def buildVersionCode = ciVersionCode ? ciVersionCode.toInteger() : 2
 def buildVersionName = ciVersionCode ? "1.${ciVersionCode}" : '1.1'
 
 def stableDebugKeystore = file(System.getProperty('user.home') + '/.android/debug.keystore')
+def releaseKeystorePath = System.getenv('ANDROID_KEYSTORE_PATH')
+
+def releaseSigningReady = releaseKeystorePath && System.getenv('ANDROID_KEYSTORE_PASSWORD') && System.getenv('ANDROID_KEY_ALIAS') && System.getenv('ANDROID_KEY_PASSWORD')
 
 android {
     namespace 'br.com.samuelmarvila.ajornadadabiblia'
@@ -27,10 +30,25 @@ android {
             keyPassword 'android'
             storeType 'JKS'
         }
+        if (releaseSigningReady) {
+            release {
+                storeFile file(releaseKeystorePath)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+                storeType 'JKS'
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.stableDebug
+        }
+        release {
+            minifyEnabled false
+            if (releaseSigningReady) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }
