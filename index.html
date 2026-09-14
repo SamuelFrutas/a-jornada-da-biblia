@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#173f35">
+  <meta name="description" content="A Jornada da Bíblia — leitura sequencial e devocional pessoal.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <title>A Jornada da Bíblia</title>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">LEITURA BÍBLICA</p>
+        <h1>A Jornada da Bíblia</h1>
+      </div>
+      <button id="historyBtn" class="icon-btn" aria-label="Ver histórico">☰</button>
+    </header>
+
+    <section id="homeView">
+      <section class="hero-card">
+        <span class="pill">Leitura atual</span>
+        <h2 id="readingTitle">Levítico 1</h2>
+        <p id="readingRange">Levítico 1:1–17</p>
+        <p class="muted" id="readingReason">Capítulo inteiro: o texto forma uma unidade sobre a oferta queimada.</p>
+        <a id="bibleLink" class="primary-btn" target="_blank" rel="noopener">📖 Abrir NTLH na SBB</a>
+      </section>
+
+      <section class="progress-card">
+        <div class="progress-head"><span>Minha jornada</span><strong id="progressPercent">0%</strong></div>
+        <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+        <p id="progressText" class="muted">Começando em Levítico 1.</p>
+      </section>
+
+      <section class="devotional-card">
+        <div class="section-heading"><span>DEVOCIONAL</span><small>sem IA · conteúdo preparado</small></div>
+        <div id="devotional"></div>
+      </section>
+
+      <section class="actions">
+        <button id="readAloudBtn" class="secondary-btn">🔊 Ouvir devocional</button>
+        <button id="completeBtn" class="primary-btn">✓ Marcar leitura como concluída</button>
+      </section>
+    </section>
+
+    <section id="historyView" class="hidden">
+      <div class="section-heading"><span>HISTÓRICO</span><button id="backBtn" class="text-btn">Voltar</button></div>
+      <div id="historyList" class="history-list"></div>
+    </section>
+  </main>
+  <script src="data/leituras.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
