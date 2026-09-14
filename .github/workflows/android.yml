@@ -5,6 +5,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  ANDROID_HOME: /usr/local/lib/android/sdk
+  ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+  PATH: /usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:/usr/local/lib/android/sdk/emulator:${{ env.PATH }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,6 +19,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Verify Android SDK tools
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          command -v sdkmanager
+          sdkmanager --version
       - name: Install Android SDK 35
         run: |
           yes | sdkmanager --licenses >/dev/null || true
