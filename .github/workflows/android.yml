@@ -14,13 +14,20 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Restore stable debug signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: a-jornada-da-biblia-debug-keystore-v2-${{ runner.os }}
       - uses: android-actions/setup-android@v3
       - name: Install Android SDK 35
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
-      - name: Install stable debug signing key
+      - name: Ensure debug signing key exists
         run: |
           mkdir -p ~/.android
-          cp android/ci/debug.keystore ~/.android/debug.keystore
+          if [ ! -f ~/.android/debug.keystore ]; then
+            keytool -genkeypair -v -keystore ~/.android/debug.keystore -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname 'CN=Android Debug,O=Android,C=US'
+          fi
           chmod 600 ~/.android/debug.keystore
       - uses: gradle/actions/setup-gradle@v4
         with:
