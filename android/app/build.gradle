@@ -8,11 +8,11 @@ def stableDebugKeystore = file(System.getProperty('user.home') + '/.android/debu
 
 android {
     namespace 'br.com.samuelmarvila.ajornadadabiblia'
-    compileSdk 35
+    compileSdk 36
     defaultConfig {
         applicationId 'br.com.samuelmarvila.ajornadadabiblia'
         minSdk 23
-        targetSdk 35
+        targetSdk 36
         versionCode buildVersionCode
         versionName buildVersionName
     }
