@@ -9,6 +9,7 @@ public final class Reading {
         this.order=order;this.book=book;this.abbreviation=abbreviation;this.chapter=chapter;this.startVerse=startVerse;this.endVerse=endVerse;this.totalVerses=totalVerses;this.description=description;
         String[] reviewed=DevotionalCatalog.get(book,chapter);
         if(reviewed==null) reviewed=DevotionalCatalog2.get(book,chapter);
+        if(reviewed==null) reviewed=DevotionalCatalog3.get(book,chapter);
         String[] base=reviewed!=null?reviewed:devotional;
         if(isPartial(startVerse,endVerse,totalVerses)) base=DevotionalComposer.forRange(book,chapter,startVerse,endVerse,totalVerses,base);
         this.devotional=normalizeDevotional(base,book,chapter,startVerse,endVerse,totalVerses);
@@ -21,6 +22,7 @@ public final class Reading {
         if(!useProvided){
             base=DevotionalCatalog.get(book,chapter);
             if(base==null) base=DevotionalCatalog2.get(book,chapter);
+            if(base==null) base=DevotionalCatalog3.get(book,chapter);
             if(base==null) base=devotional;
         }
         if(isPartial(startVerse,endVerse,totalVerses)) base=DevotionalComposer.forRange(book,chapter,startVerse,endVerse,totalVerses,base);
