@@ -12,6 +12,25 @@ import java.util.*;
 /** Ajustes da interface moderna: calendário real, fluxo claro e botões sempre visíveis. */
 public class ModernActivityV2 extends ModernActivity {
 
+    @Override void base(String selected){
+        super.base(selected);
+        body.setPadding(dp(18),dp(28),dp(18),dp(48));
+        root.setOnApplyWindowInsetsListener((v,insets)->{
+            int top=insets.getSystemWindowInsetTop();
+            int bottom=insets.getSystemWindowInsetBottom();
+            body.setPadding(dp(18),dp(28)+top,dp(18),dp(48)+bottom);
+            if(root.getChildCount()>1){
+                View nav=root.getChildAt(root.getChildCount()-1);
+                nav.setPadding(nav.getPaddingLeft(),nav.getPaddingTop(),nav.getPaddingRight(),dp(7)+bottom);
+                ViewGroup.LayoutParams lp=nav.getLayoutParams();
+                lp.height=dp(72)+bottom;
+                nav.setLayoutParams(lp);
+            }
+            return insets;
+        });
+        root.requestApplyInsets();
+    }
+
     @Override void reading(){
         super.reading();
         if(current==null) return;
