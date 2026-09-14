@@ -28,11 +28,11 @@ public class ModernActivityV2 extends ModernActivity {
 
     @Override void devHub(){
         base("devhub");
-        hero("SEU MOMENTO COM DEUS","Devocional","Primeiro a leitura. Depois, a reflexão.",R.drawable.ic_favorite);
+        hero("SEU MOMENTO COM DEUS","Devocional","Primeiro a leitura. Depois, a reflexão.",R.drawable.ic_pray);
         boolean r=pref.getBoolean("reading_"+index,false);
         LinearLayout a=step("01","Leitura do dia",r?"Leitura concluída. Você pode revisar a passagem.":"Comece lendo a passagem bíblica.",r?"Revisar leitura":"Ler a leitura",true,R.drawable.ic_book,()->open("read",true));
         body.addView(a,m(0,0));
-        LinearLayout b=step("02","Devocional",r?"Agora pare, reflita, pratique e ore.":"Bloqueado até a leitura ser concluída.","Abrir devocional",r,R.drawable.ic_favorite,()->open("dev",true));
+        LinearLayout b=step("02","Devocional",r?"Agora pare, reflita, pratique e ore.":"Bloqueado até a leitura ser concluída.","Abrir devocional",r,R.drawable.ic_pray,()->open("dev",true));
         body.addView(b,m(0,10));
         LinearLayout flow=card(CREAM);
         flow.addView(text("A ORDEM DA JORNADA",10,GREEN,true));
@@ -66,7 +66,7 @@ public class ModernActivityV2 extends ModernActivity {
     LinearLayout calendarCard(){
         Calendar now=Calendar.getInstance();
         int year=now.get(Calendar.YEAR), month=now.get(Calendar.MONTH), today=now.get(Calendar.DAY_OF_MONTH);
-        String monthName=new SimpleDateFormat("MMMM 'de' yyyy",new Locale("pt","BR")).format(now);
+        String monthName=new SimpleDateFormat("MMMM 'de' yyyy",new Locale("pt","BR")).format(now.getTime());
         monthName=Character.toUpperCase(monthName.charAt(0))+monthName.substring(1);
 
         LinearLayout c=card(WHITE);
@@ -92,9 +92,9 @@ public class ModernActivityV2 extends ModernActivity {
         }
         c.addView(grid);
         LinearLayout legend=new LinearLayout(this); legend.setGravity(Gravity.CENTER_VERTICAL); legend.setPadding(0,dp(10),0,0);
-        legend.addView(text("● Concluído",11,GREEN,true));
+        legend.addView(text("Concluído",11,GREEN,true));
         legend.addView(text("   Hoje",11,NAVY,true));
-        legend.addView(text("   ○ Pendente",11,MUTED,false));
+        legend.addView(text("   Pendente",11,MUTED,false));
         c.addView(legend);
         return c;
     }
