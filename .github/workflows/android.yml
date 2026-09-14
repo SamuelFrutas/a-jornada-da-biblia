@@ -22,6 +22,7 @@ jobs:
           mkdir -p ~/.android
           base64 -d android/ci/debug.keystore.gz.b64 | gunzip > ~/.android/debug.keystore
           chmod 600 ~/.android/debug.keystore
+          keytool -list -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey >/dev/null
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
