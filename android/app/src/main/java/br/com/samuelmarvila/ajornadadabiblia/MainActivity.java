@@ -21,19 +21,37 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends Activity {
-    private static final String PREFS="jornada", CURRENT="current_reading";
-    private static final int START_LEVITICUS_1=90;
+    private static final String PREFS="jornada", CURRENT="current_reading", PLAN_VERSION="plan_version";
+    private static final int CURRENT_PLAN_VERSION=2;
     private SharedPreferences prefs; private List<Reading> readings; private Reading current;
     private TextToSpeech tts; private Button playPause; private TextView playerStatus; private boolean speaking; private int speechPart;
-    private CheckBox readCheck;
+    private CheckBox readCheck; private Button devotionalButton;
 
     @Override public void onCreate(Bundle state){
-        super.onCreate(state); prefs=getSharedPreferences(PREFS,MODE_PRIVATE); readings=ReadingCatalog.all(); migrateOldProgress(); current=getCurrentReading(); buildHome();
+        super.onCreate(state); prefs=getSharedPreferences(PREFS,MODE_PRIVATE); readings=ReadingPlan.build(); migrateOldProgress(); current=getCurrentReading(); buildHome();
         tts=new TextToSpeech(this,status->{if(status==TextToSpeech.SUCCESS){tts.setLanguage(new Locale("pt","BR"));tts.setOnUtteranceProgressListener(new UtteranceProgressListener(){public void onStart(String id){}public void onDone(String id){runOnUiThread(()->nextSpeechPart());}public void onError(String id){runOnUiThread(()->stopSpeech());}});}});
     }
-    private void migrateOldProgress(){if(!prefs.contains(CURRENT)){int initial=prefs.getBoolean("lev1",false)?START_LEVITICUS_1+1:START_LEVITICUS_1;prefs.edit().putInt(CURRENT,initial).apply();}}
-    private Reading getCurrentReading(){int i=prefs.getInt(CURRENT,START_LEVITICUS_1);if(i<0)i=0;return i<readings.size()?readings.get(i):null;}
-    private int index(){return prefs.getInt(CURRENT,START_LEVITICUS_1);}
+    private void migrateOldProgress(){
+        int version=prefs.getInt(PLAN_VERSION,0);
+        if(version<CURRENT_PLAN_VERSION){
+            int old=prefs.getInt(CURRENT,-1);
+            int lev=findReadingIndex("Levítico",1,1);
+            if(old<0){
+                old=prefs.getBoolean("lev1",false)?lev+1:lev;
+            } else if(old==90 || old==91){
+                old=prefs.getBoolean("reading_90",false)?lev+1:lev;
+            }
+            prefs.edit().putInt(CURRENT,old).putInt(PLAN_VERSION,CURRENT_PLAN_VERSION).apply();
+        } else if(!prefs.contains(CURRENT)){
+            prefs.edit().putInt(CURRENT,findReadingIndex("Levítico",1,1)).apply();
+        }
+    }
+    private int findReadingIndex(String book,int chapter,int verse){
+        for(int i=0;i<readings.size();i++){Reading r=readings.get(i);if(r.book.equals(book)&&r.chapter==chapter&&r.startVerse==verse)return i;}
+        return 0;
+    }
+    private Reading getCurrentReading(){int i=index();if(i<0)i=0;return i<readings.size()?readings.get(i):null;}
+    private int index(){return prefs.getInt(CURRENT,findReadingIndex("Levítico",1,1));}
     private int dp(int v){return(int)(v*getResources().getDisplayMetrics().density+.5f);}
     private TextView text(String s,float size,boolean bold){TextView t=new TextView(this);t.setText(s);t.setTextSize(size);t.setTextColor(Color.rgb(35,40,38));t.setPadding(0,dp(5),0,dp(5));if(bold)t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);return t;}
     private GradientDrawable bg(int color,int radius){GradientDrawable d=new GradientDrawable();d.setColor(color);d.setCornerRadius(dp(radius));return d;}
@@ -50,9 +68,9 @@ public class MainActivity extends Activity {
         int i=index(); int percent=Math.round(i*100f/readings.size());
         LinearLayout progress=new LinearLayout(this);progress.setOrientation(LinearLayout.VERTICAL);progress.setPadding(dp(20),dp(18),dp(20),dp(18));progress.setBackground(bg(Color.WHITE,20));
         LinearLayout pr=new LinearLayout(this);pr.setGravity(Gravity.CENTER_VERTICAL);pr.addView(text("Seu progresso",18,true),new LinearLayout.LayoutParams(0,-2,1));TextView pct=text(percent+"%",17,true);pct.setTextColor(Color.rgb(24,91,70));pr.addView(pct);progress.addView(pr);
-        ProgressBar bar=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);bar.setMax(readings.size());bar.setProgress(i);progress.addView(bar);progress.addView(text("Leitura "+(i+1)+" de "+readings.size(),13.5f,false));content.addView(progress,new LinearLayout.LayoutParams(-1,-2));
+        ProgressBar bar=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);bar.setMax(readings.size());bar.setProgress(i);progress.addView(bar);progress.addView(text("Etapa "+(i+1)+" de "+readings.size(),13.5f,false));content.addView(progress,new LinearLayout.LayoutParams(-1,-2));
         LinearLayout phrase=new LinearLayout(this);phrase.setOrientation(LinearLayout.VERTICAL);phrase.setPadding(dp(20),dp(18),dp(20),dp(18));phrase.setBackground(bg(Color.rgb(221,237,229),20));LinearLayout.LayoutParams fp=new LinearLayout.LayoutParams(-1,-2);fp.setMargins(0,dp(14),0,dp(14));content.addView(phrase,fp);phrase.addView(text("FRASE PARA HOJE",12,true));phrase.addView(text(phraseOfDay(current),19,true));phrase.addView(text("Baseada no tema da leitura de hoje.",13,false));
-        LinearLayout today=new LinearLayout(this);today.setOrientation(LinearLayout.VERTICAL);today.setPadding(dp(20),dp(18),dp(20),dp(18));today.setBackground(bg(Color.WHITE,20));today.addView(text("PRÓXIMA ETAPA",12,true));today.addView(text(current.reference(),25,true));today.addView(text(current.description,14,false));Button go=button("📖  Ir para a leitura");go.setTextColor(Color.WHITE);go.setBackground(bg(Color.rgb(24,91,70),16));go.setOnClickListener(v->buildReading());today.addView(go,new LinearLayout.LayoutParams(-1,dp(52)));content.addView(today);
+        LinearLayout today=new LinearLayout(this);today.setOrientation(LinearLayout.VERTICAL);today.setPadding(dp(20),dp(18),dp(20),dp(18));today.setBackground(bg(Color.WHITE,20));today.addView(text("PRÓXIMA ETAPA",12,true));today.addView(text(current.reference(),25,true));today.addView(text(current.scope(),13.5f,false));today.addView(text(current.description,14,false));Button go=button("📖  Ir para a leitura");go.setTextColor(Color.WHITE);go.setBackground(bg(Color.rgb(24,91,70),16));go.setOnClickListener(v->buildReading());today.addView(go,new LinearLayout.LayoutParams(-1,dp(52)));content.addView(today);
         if(prefs.getBoolean("reading_"+i,false)){Button dev=button("❤️  Ver devocional");dev.setOnClickListener(v->buildDevotional());content.addView(dev,new LinearLayout.LayoutParams(-1,dp(52)));}
         root.addView(scroll(content),new LinearLayout.LayoutParams(-1,0,1));setContentView(root);
     }
@@ -63,7 +81,7 @@ public class MainActivity extends Activity {
         if(b.equals("Êxodo")) return "Deus liberta, conduz e ensina seu povo a caminhar com Ele.";
         if(b.equals("Números")||b.equals("Deuteronômio")) return "Fidelidade a Deus também se aprende no caminho.";
         if(b.equals("Salmos")||b.equals("Provérbios")) return "A Palavra de Deus merece entrar não apenas na mente, mas também na vida.";
-        if(b.equals("Evangelho segundo Mateus")||b.equals("Evangelho segundo Marcos")||b.equals("Evangelho segundo Lucas")||b.equals("Evangelho segundo João")) return "Conhecer Jesus transforma a maneira de viver, servir e confiar.";
+        if(b.equals("Mateus")||b.equals("Marcos")||b.equals("Lucas")||b.equals("João")) return "Conhecer Jesus transforma a maneira de viver, servir e confiar.";
         if(b.equals("Atos")) return "O evangelho continua avançando quando pessoas comuns obedecem a Deus.";
         return "Leia com atenção, reflita com sinceridade e coloque em prática o que Deus está ensinando.";
     }
@@ -72,10 +90,10 @@ public class MainActivity extends Activity {
         stopSpeech(); LinearLayout root=new LinearLayout(this);base(root);header(root,"Leitura","Agora leia o texto bíblico com atenção.");
         LinearLayout content=new LinearLayout(this);content.setOrientation(LinearLayout.VERTICAL);content.setPadding(0,dp(18),0,dp(12));
         LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setPadding(dp(20),dp(20),dp(20),dp(20));card.setBackground(bg(Color.rgb(221,237,229),22));card.addView(text("LEITURA DE HOJE",12,true));card.addView(text(current.reference(),30,true));card.addView(text(current.scope(),14,false));card.addView(text(current.description,15,false));Button open=button("📖  Abrir NTLH");open.setTextColor(Color.WHITE);open.setBackground(bg(Color.rgb(24,91,70),16));open.setOnClickListener(v->{Intent in=new Intent(this,WebViewActivity.class);in.putExtra("url",current.sbbUrl());in.putExtra("title",current.reference()+" — NTLH");startActivity(in);});card.addView(open,new LinearLayout.LayoutParams(-1,dp(52)));content.addView(card);
-        LinearLayout mark=new LinearLayout(this);mark.setOrientation(LinearLayout.VERTICAL);mark.setPadding(dp(18),dp(16),dp(18),dp(16));mark.setBackground(bg(Color.WHITE,18));LinearLayout.LayoutParams mp=new LinearLayout.LayoutParams(-1,-2);mp.setMargins(0,dp(14),0,dp(14));content.addView(mark,mp);readCheck=new CheckBox(this);readCheck.setText("  Eu li esta leitura na NTLH");readCheck.setTextSize(16);readCheck.setChecked(prefs.getBoolean("reading_"+index(),false));readCheck.setOnCheckedChangeListener((b,checked)->{if(checked){prefs.edit().putBoolean("reading_"+index(),true).apply();}else{prefs.edit().putBoolean("reading_"+index(),false).apply();}refreshReadingButtons();});mark.addView(readCheck);mark.addView(text("Depois de marcar a leitura, o devocional fica disponível para esta etapa.",13.5f,false));
-        Button dev=button("❤️  Ir para o devocional");dev.setTextColor(Color.WHITE);dev.setBackground(bg(Color.rgb(24,91,70),16));dev.setTag("dev");dev.setOnClickListener(v->buildDevotional());content.addView(dev,new LinearLayout.LayoutParams(-1,dp(52)));Button back=button("←  Voltar ao início");back.setOnClickListener(v->buildHome());content.addView(back,new LinearLayout.LayoutParams(-1,dp(50)));root.addView(scroll(content),new LinearLayout.LayoutParams(-1,0,1));setContentView(root);refreshReadingButtons();
+        LinearLayout mark=new LinearLayout(this);mark.setOrientation(LinearLayout.VERTICAL);mark.setPadding(dp(18),dp(16),dp(18),dp(16));mark.setBackground(bg(Color.WHITE,18));LinearLayout.LayoutParams mp=new LinearLayout.LayoutParams(-1,-2);mp.setMargins(0,dp(14),0,dp(14));content.addView(mark,mp);readCheck=new CheckBox(this);readCheck.setText("  Eu li esta leitura na NTLH");readCheck.setTextSize(16);readCheck.setChecked(prefs.getBoolean("reading_"+index(),false));readCheck.setOnCheckedChangeListener((b,checked)->{prefs.edit().putBoolean("reading_"+index(),checked).apply();refreshReadingButtons();});mark.addView(readCheck);mark.addView(text("Depois de marcar a leitura, o devocional fica disponível para esta etapa.",13.5f,false));
+        devotionalButton=button("❤️  Ir para o devocional");devotionalButton.setTextColor(Color.WHITE);devotionalButton.setBackground(bg(Color.rgb(24,91,70),16));devotionalButton.setOnClickListener(v->buildDevotional());content.addView(devotionalButton,new LinearLayout.LayoutParams(-1,dp(52)));Button back=button("←  Voltar ao início");back.setOnClickListener(v->buildHome());content.addView(back,new LinearLayout.LayoutParams(-1,dp(50)));root.addView(scroll(content),new LinearLayout.LayoutParams(-1,0,1));setContentView(root);refreshReadingButtons();
     }
-    private void refreshReadingButtons(){if(readCheck==null)return;View parent=readCheck.getParent(); if(parent==null)return;LinearLayout root=(LinearLayout)parent.getParent(); if(root==null)return;}
+    private void refreshReadingButtons(){if(devotionalButton==null)return;boolean enabled=readCheck!=null&&readCheck.isChecked();devotionalButton.setEnabled(enabled);devotionalButton.setAlpha(enabled?1f:.48f);}
 
     private void buildDevotional(){
         stopSpeech(); if(!prefs.getBoolean("reading_"+index(),false)){buildReading();return;} LinearLayout root=new LinearLayout(this);base(root);header(root,"Devocional","Agora pare, reflita e deixe a Palavra falar com você.");
@@ -85,7 +103,7 @@ public class MainActivity extends Activity {
         Button finish=button("✓  Concluir devocional e avançar");finish.setTextColor(Color.WHITE);finish.setBackground(bg(Color.rgb(24,91,70),16));finish.setOnClickListener(v->completeReading());content.addView(finish,new LinearLayout.LayoutParams(-1,dp(52)));Button back=button("←  Voltar para a leitura");back.setOnClickListener(v->buildReading());content.addView(back,new LinearLayout.LayoutParams(-1,dp(50)));root.addView(scroll(content),new LinearLayout.LayoutParams(-1,0,1));setContentView(root);
     }
 
-    private void completeReading(){stopSpeech();int next=index()+1;prefs.edit().putInt(CURRENT,next).putBoolean("reading_"+index(),true).apply();current=getCurrentReading();buildHome();}
+    private void completeReading(){stopSpeech();int old=index();int next=old+1;prefs.edit().putInt(CURRENT,next).putBoolean("reading_"+old,true).apply();current=getCurrentReading();buildHome();}
     private void toggleSpeech(){if(tts==null)return;if(speaking){tts.stop();speaking=false;playPause.setText("▶  Continuar");playerStatus.setText("Pausado na parte "+(speechPart+1)+" de 5");}else{speaking=true;playPause.setText("Ⅱ  Pausar");speakCurrent();}}
     private void speakCurrent(){if(!speaking||current==null)return;playerStatus.setText("Reproduzindo parte "+(speechPart+1)+" de 5");tts.speak(current.devotional[speechPart],TextToSpeech.QUEUE_FLUSH,null,"devotional-"+speechPart);}
     private void nextSpeechPart(){if(!speaking)return;speechPart++;if(current!=null&&speechPart<current.devotional.length)speakCurrent();else finishSpeech();}
