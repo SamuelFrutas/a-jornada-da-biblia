@@ -4,10 +4,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -19,6 +19,8 @@ public class MainActivity extends Activity {
     private static final String PREFS = "jornada";
     private SharedPreferences prefs;
     private TextToSpeech tts;
+    private boolean speaking = false;
+    private Button playPause;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -28,46 +30,47 @@ public class MainActivity extends Activity {
     }
 
     private TextView text(String value, float size, boolean bold) {
-        TextView v = new TextView(this); v.setText(value); v.setTextSize(size); v.setTextColor(Color.rgb(35,35,35));
-        v.setPadding(0, 10, 0, 10); if (bold) v.setTypeface(null, 1); return v;
+        TextView v = new TextView(this); v.setText(value); v.setTextSize(size); v.setTextColor(Color.rgb(38,42,40)); v.setPadding(0,8,0,8);
+        if (bold) v.setTypeface(Typeface.DEFAULT, Typeface.BOLD); return v;
     }
+    private Button button(String label) { Button b = new Button(this); b.setText(label); b.setAllCaps(false); b.setTextSize(15); return b; }
 
-    private Button button(String label) {
-        Button b = new Button(this); b.setText(label); b.setAllCaps(false); return b;
+    private void addCard(LinearLayout parent, String heading, String body) {
+        LinearLayout card = new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL); card.setPadding(24,18,24,18); card.setBackgroundColor(Color.WHITE);
+        card.addView(text(heading,18,true)); card.addView(text(body,15.5f,false));
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1,-2); p.setMargins(0,0,0,14); parent.addView(card,p);
     }
 
     private void buildScreen() {
-        LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(28, 24, 28, 28); root.setBackgroundColor(Color.rgb(247,244,238));
-        TextView title = text("A Jornada da Bíblia", 28, true); title.setTextColor(Color.rgb(23,63,53)); root.addView(title);
-        root.addView(text("Leitura sequencial • sem pular partes", 15, false));
+        boolean done = prefs.getBoolean("lev1", false);
+        LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(22,22,22,24); root.setBackgroundColor(Color.rgb(244,246,243));
+        TextView title = text("A Jornada da Bíblia",27,true); title.setTextColor(Color.rgb(28,76,62)); root.addView(title);
+        TextView subtitle = text("Uma jornada pela Bíblia, em sequência",14,false); subtitle.setTextColor(Color.rgb(85,92,88)); root.addView(subtitle);
+        ScrollView scroll = new ScrollView(this); LinearLayout content = new LinearLayout(this); content.setOrientation(LinearLayout.VERTICAL); content.setPadding(0,20,0,0);
 
-        ScrollView scroll = new ScrollView(this); LinearLayout content = new LinearLayout(this); content.setOrientation(LinearLayout.VERTICAL);
-        content.addView(text("LEITURA ATUAL", 13, true));
-        content.addView(text("Levítico 1", 25, true));
-        content.addView(text("Levítico 1:1–17", 17, false));
-        content.addView(text("Capítulo inteiro: o texto forma uma unidade sobre a oferta queimada.", 15, false));
+        LinearLayout readingCard = new LinearLayout(this); readingCard.setOrientation(LinearLayout.VERTICAL); readingCard.setPadding(24,22,24,22); readingCard.setBackgroundColor(Color.rgb(226,237,231));
+        readingCard.addView(text("LEITURA DE HOJE",12,true)); TextView ref = text("Levítico 1",29,true); ref.setTextColor(Color.rgb(28,76,62)); readingCard.addView(ref);
+        readingCard.addView(text("Capítulo inteiro • 17 versículos",15,false)); readingCard.addView(text("Uma unidade sobre a oferta queimada.",14,false));
+        Button read = button("📖  Ler NTLH"); read.setOnClickListener(v -> { Intent i=new Intent(this,WebViewActivity.class); i.putExtra("url","https://www.sbb.org.br/biblia/NTLH/LEV.1"); i.putExtra("title","Levítico 1 — NTLH"); startActivity(i); }); readingCard.addView(read); content.addView(readingCard);
 
-        Button read = button("📖 Ler NTLH dentro do aplicativo");
-        read.setOnClickListener(v -> { Intent i = new Intent(this, WebViewActivity.class); i.putExtra("url", "https://www.sbb.org.br/biblia/NTLH/LEV.1"); i.putExtra("title", "Levítico 1 — NTLH"); startActivity(i); });
-        content.addView(read);
+        content.addView(text("Seu progresso",17,true)); ProgressBar progress=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal); progress.setMax(100); progress.setProgress(done?100:0); content.addView(progress);
+        content.addView(text(done?"Leitura concluída ✓":"Comece sua jornada por Levítico 1",14,false)); content.addView(text("DEVOCIONAL",13,true));
+        addCard(content,"🧠 1. Explicação do texto","Levítico 1 apresenta as orientações de Deus para a oferta queimada. O Senhor fala a Moisés da Tenda Sagrada e estabelece como o israelita deveria apresentar o animal, como o sangue seria tratado pelos sacerdotes e como a oferta seria totalmente queimada. São apresentadas três possibilidades: gado, rebanho de ovelhas ou cabras e aves. O ponto central é uma adoração ordenada por Deus, com um animal sem defeito e com participação do adorador e dos sacerdotes.");
+        addCard(content,"🏺 2. Contexto — tempo e cultura","Levítico vem logo depois da construção do Tabernáculo. Israel estava aprendendo a viver como povo da aliança na presença de um Deus santo. Sacrifícios faziam parte desse sistema de culto. A exigência de um animal sem defeito mostrava que não se oferecia a Deus algo tratado como sem valor. A possibilidade de oferecer aves também mostra que o sistema não estava restrito aos que possuíam gado. A expressão “cheiro agradável” descreve a oferta aceita por Deus; não significa que Deus precisasse de alimento.");
+        addCard(content,"❤️ 3. Aplicação — reflexão","O texto nos lembra que aproximar-se de Deus não deve ser tratado de qualquer maneira. A adoração envolve reverência, entrega e reconhecimento da santidade de Deus. Também vemos que o pecado e a necessidade de reconciliação eram levados a sério. Para o cristão, não devemos transformar Levítico 1 numa simples fórmula dizendo que o animal era Jesus. O texto precisa primeiro ser entendido dentro da aliança de Israel. Depois, à luz do Novo Testamento, podemos reconhecer que os sacrifícios não eram a solução final e que a obra de Cristo é apresentada como definitiva.");
+        addCard(content,"🚶 4. Prática — como viver isso hoje","Hoje, pratique uma adoração que não seja apenas aparência. Separe um tempo real para Deus, confesse aquilo que precisa ser confessado e não trate a fé como uma negociação para conseguir benefícios. Entregue a Deus não apenas palavras, mas decisões, hábitos, tempo e prioridades. Faça sua leitura bíblica com atenção e procure obedecer ao que realmente o texto ensina.");
+        addCard(content,"🙏 5. Oração","Senhor Deus, ensina-me a te tratar com reverência e sinceridade. Que eu não transforme minha fé em aparência nem tente negociar contigo. Ajuda-me a reconhecer a seriedade do pecado, valorizar a tua presença e viver uma vida de entrega. Dá-me entendimento para ler tua Palavra com fidelidade e coragem para praticá-la. Em nome de Jesus, amém.");
 
-        ProgressBar progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal); progress.setMax(100); progress.setProgress(prefs.getBoolean("lev1", false) ? 100 : 0); content.addView(progress);
-        content.addView(text(prefs.getBoolean("lev1", false) ? "Leitura concluída." : "Você está começando em Levítico 1.", 14, false));
-
-        content.addView(text("DEVOCIONAL", 13, true));
-        addSection(content, "1. Explicação do texto", "Levítico 1 apresenta as orientações de Deus para a oferta queimada. O Senhor fala a Moisés da Tenda Sagrada e estabelece como o israelita deveria apresentar o animal, como o sangue seria tratado pelos sacerdotes e como a oferta seria totalmente queimada. São apresentadas três possibilidades: gado, rebanho de ovelhas ou cabras e aves. O ponto central é uma adoração ordenada por Deus, com um animal sem defeito e com participação do adorador e dos sacerdotes.");
-        addSection(content, "2. Contexto — tempo e cultura", "Levítico vem logo depois da construção do Tabernáculo. Israel estava aprendendo a viver como povo da aliança na presença de um Deus santo. Sacrifícios faziam parte desse sistema de culto. A exigência de um animal sem defeito mostrava que não se oferecia a Deus algo tratado como sem valor. A possibilidade de oferecer aves também mostra que o sistema não estava restrito aos que possuíam gado. A expressão “cheiro agradável” descreve a oferta aceita por Deus; não significa que Deus precisasse de alimento.");
-        addSection(content, "3. Aplicação — reflexão", "O texto nos lembra que aproximar-se de Deus não deve ser tratado de qualquer maneira. A adoração envolve reverência, entrega e reconhecimento da santidade de Deus. Também vemos que o pecado e a necessidade de reconciliação eram levados a sério. Para o cristão, não devemos transformar Levítico 1 numa simples fórmula dizendo que o animal era Jesus. O texto precisa primeiro ser entendido dentro da aliança de Israel. Depois, à luz do Novo Testamento, podemos reconhecer que os sacrifícios não eram a solução final e que a obra de Cristo é apresentada como definitiva.");
-        addSection(content, "4. Prática — como viver isso hoje", "Hoje, pratique uma adoração que não seja apenas aparência. Separe um tempo real para Deus, confesse aquilo que precisa ser confessado e não trate a fé como uma negociação para conseguir benefícios. Entregue a Deus não apenas palavras, mas decisões, hábitos, tempo e prioridades. Faça sua leitura bíblica com atenção e procure obedecer ao que realmente o texto ensina.");
-        addSection(content, "5. Oração", "Senhor Deus, ensina-me a te tratar com reverência e sinceridade. Que eu não transforme minha fé em aparência nem tente negociar contigo. Ajuda-me a reconhecer a seriedade do pecado, valorizar a tua presença e viver uma vida de entrega. Dá-me entendimento para ler tua Palavra com fidelidade e coragem para praticá-la. Em nome de Jesus, amém.");
-
-        Button listen = button("🔊 Ouvir devocional"); listen.setOnClickListener(v -> speak()); content.addView(listen);
-        Button complete = button(prefs.getBoolean("lev1", false) ? "✓ Leitura concluída" : "✓ Marcar leitura como concluída");
-        complete.setOnClickListener(v -> { prefs.edit().putBoolean("lev1", true).apply(); buildScreen(); }); content.addView(complete);
-        scroll.addView(content); root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1)); setContentView(root);
+        content.addView(text("Leitor do devocional",17,true)); LinearLayout player=new LinearLayout(this); player.setGravity(Gravity.CENTER_VERTICAL); player.setPadding(10,6,10,6); player.setBackgroundColor(Color.WHITE);
+        playPause=button("▶  Ouvir devocional"); playPause.setOnClickListener(v -> toggleSpeech()); player.addView(playPause,new LinearLayout.LayoutParams(0,-2,1));
+        Button stop=button("■ Parar"); stop.setOnClickListener(v -> stopSpeech()); player.addView(stop); content.addView(player);
+        Button complete=button(done?"✓  Leitura concluída":"✓  Marcar leitura como concluída"); complete.setOnClickListener(v->{prefs.edit().putBoolean("lev1",true).apply(); buildScreen();}); content.addView(complete);
+        content.addView(text("Próximas melhorias",17,true)); content.addView(text("Histórico de leituras, sequência automática, divisão contextual dos capítulos, busca, favoritos, modo escuro e uma experiência visual ainda mais moderna.",14.5f,false));
+        scroll.addView(content); root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1)); setContentView(root);
     }
 
-    private void addSection(LinearLayout box, String heading, String body) { box.addView(text(heading, 19, true)); box.addView(text(body, 16, false)); }
-    private void speak() { if (tts != null) { String s = "Explicação do texto. Levítico capítulo um apresenta as orientações de Deus para a oferta queimada. Contexto. Israel estava aprendendo a viver como povo da aliança na presença de um Deus santo. Aplicação. A adoração envolve reverência, entrega e reconhecimento da santidade de Deus. Prática. Separe um tempo real para Deus, confesse o que precisa ser confessado e viva uma fé de entrega. Oração. Senhor Deus, ensina-me a te tratar com reverência e sinceridade. Em nome de Jesus, amém."; tts.speak(s, TextToSpeech.QUEUE_FLUSH, null, "devocional"); } }
-    @Override protected void onDestroy() { if (tts != null) { tts.stop(); tts.shutdown(); } super.onDestroy(); }
+    private String devotionalSpeech(){return "Explicação do texto. Levítico capítulo um apresenta as orientações de Deus para a oferta queimada. O Senhor fala a Moisés da Tenda Sagrada e estabelece como o israelita deveria apresentar o animal, como o sangue seria tratado pelos sacerdotes e como a oferta seria totalmente queimada. Contexto. Levítico vem logo depois da construção do Tabernáculo. Israel estava aprendendo a viver como povo da aliança na presença de um Deus santo. Aplicação. O texto nos lembra que aproximar-se de Deus não deve ser tratado de qualquer maneira. A adoração envolve reverência, entrega e reconhecimento da santidade de Deus. Prática. Pratique uma adoração que não seja apenas aparência. Separe um tempo real para Deus e entregue a ele suas decisões, hábitos, tempo e prioridades. Oração. Senhor Deus, ensina-me a te tratar com reverência e sinceridade. Dá-me entendimento para ler tua Palavra com fidelidade e coragem para praticá-la. Em nome de Jesus, amém.";}
+    private void toggleSpeech(){if(tts==null)return; if(speaking){tts.stop(); speaking=false; playPause.setText("▶  Continuar ouvindo");}else{speaking=true; playPause.setText("Ⅱ  Pausar"); tts.speak(devotionalSpeech(),TextToSpeech.QUEUE_FLUSH,null,"devocional");}}
+    private void stopSpeech(){if(tts!=null)tts.stop(); speaking=false; if(playPause!=null)playPause.setText("▶  Ouvir devocional");}
+    @Override protected void onDestroy(){stopSpeech();if(tts!=null)tts.shutdown();super.onDestroy();}
 }
