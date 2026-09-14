@@ -16,6 +16,9 @@ android {
         versionCode buildVersionCode
         versionName buildVersionName
     }
+    buildFeatures {
+        buildConfig true
+    }
     signingConfigs {
         stableDebug {
             storeFile stableDebugKeystore
