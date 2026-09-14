@@ -4,6 +4,30 @@ def ciVersionCode = System.getenv('GITHUB_RUN_NUMBER')
 def buildVersionCode = ciVersionCode ? ciVersionCode.toInteger() : 2
 def buildVersionName = ciVersionCode ? "1.${ciVersionCode}" : '1.1'
 
-android { namespace 'br.com.samuelmarvila.ajornadadabiblia'; compileSdk 35
-    defaultConfig { applicationId 'br.com.samuelmarvila.ajornadadabiblia'; minSdk 23; targetSdk 35; versionCode buildVersionCode; versionName buildVersionName }
+def stableDebugKeystore = file(System.getProperty('user.home') + '/.android/debug.keystore')
+
+android {
+    namespace 'br.com.samuelmarvila.ajornadadabiblia'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'br.com.samuelmarvila.ajornadadabiblia'
+        minSdk 23
+        targetSdk 35
+        versionCode buildVersionCode
+        versionName buildVersionName
+    }
+    signingConfigs {
+        stableDebug {
+            storeFile stableDebugKeystore
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+            storeType 'JKS'
+        }
+    }
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.stableDebug
+        }
+    }
 }
