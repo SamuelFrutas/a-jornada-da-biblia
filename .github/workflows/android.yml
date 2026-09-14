@@ -17,11 +17,11 @@ jobs:
       - uses: android-actions/setup-android@v3
       - name: Install Android SDK 35
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
-      - name: Restore stable debug signing key
-        uses: actions/cache@v4
-        with:
-          path: ~/.android/debug.keystore
-          key: a-jornada-da-biblia-debug-keystore-v1-${{ runner.os }}
+      - name: Install stable debug signing key
+        run: |
+          mkdir -p ~/.android
+          cp android/ci/debug.keystore ~/.android/debug.keystore
+          chmod 600 ~/.android/debug.keystore
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
